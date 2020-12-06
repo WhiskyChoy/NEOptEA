@@ -5,10 +5,10 @@ import pandas as pd
 import numpy as np
 import os
 from common import data_prefix, result_prefix, output_prefix
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 
 
-def run(date, n, T, ep, c_max_dir, d_dir, s_dir, desc):
+def run(date, n, T, ep, c_max_dir, d_dir, s_dir, desc, MAXGEN=500, F=0.5, XOVR=0.7):
     if not os.path.exists(data_prefix):
         os.mkdir(data_prefix)
 
@@ -48,9 +48,9 @@ def run(date, n, T, ep, c_max_dir, d_dir, s_dir, desc):
     """================================算法参数设置============================="""
     myAlgorithm = ea.soea_DE_rand_1_bin_templet(
         problem, population)  # 实例化一个算法模板对象
-    myAlgorithm.MAXGEN = 500  # 最大进化代数
-    myAlgorithm.mutOper.F = 0.5  # 差分进化中的参数F
-    myAlgorithm.recOper.XOVR = 0.7  # 重组概率
+    myAlgorithm.MAXGEN = MAXGEN  # 最大进化代数
+    myAlgorithm.mutOper.F = F  # 差分进化中的参数F
+    myAlgorithm.recOper.XOVR = XOVR  # 重组概率
     myAlgorithm.logTras = 0  # 设置每隔多少代记录日志，若设置成0则表示不记录日志
     myAlgorithm.verbose = True  # 设置是否打印输出日志信息
     myAlgorithm.drawing = 0  # 设置绘图方式（0：不绘图；1：绘制结果图；2：绘制目标空间过程动画；3：绘制决策空间过程动画）
@@ -78,8 +78,8 @@ def run(date, n, T, ep, c_max_dir, d_dir, s_dir, desc):
 
 if __name__ == '__main__':
     n = 10
-    T = 1000
-    ep = 0.9
+    T_s = [100, 1000, 10000]
+    ep_s = [0.5, 0.6, 0.7, 0.8, 0.9]
 
     c_max_dir = 'c_max.csv'
     d_dir = 'd.csv'
@@ -91,6 +91,9 @@ if __name__ == '__main__':
     step = timedelta(days=1)
     total_steps = (end_date - start_date) // step + 1
 
-    for i in range(0, total_steps):
-        date = start_date + i * step
-        run(date, n, T, ep, c_max_dir, d_dir, s_dir, desc)
+    dates = [start_date + i * step for i in range(0,total_steps)]
+
+    for T in T_s:
+        for ep in ep_s:
+            for date in dates:
+                run(date, n, T, ep, c_max_dir, d_dir, s_dir, desc)
